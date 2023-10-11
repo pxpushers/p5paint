@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>p5 Paint</title>
+    <link rel="icon" href="favicon.webp" type="image/webp">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <style>
         body {
@@ -14,12 +15,20 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #EE7600;
+            background-color: #FFF;
             font-family: 'Lucida Console', Consolas, Courier New, monospace;
+        }
+
+        img#logo {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: auto;
         }
         
         h1 {
-            color: #fff;
+            color: #000;
             font-size: 24px;
             text-align: center;
             margin-bottom: 20px;
@@ -130,6 +139,7 @@
     </style>
 </head>
 <body>
+    <img src="pxp.webp" alt="Logo" id="logo">
     <h1>p5 Paint</h1>
     <div id="toolbar">
         <div id="colorPicker">
