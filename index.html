@@ -61,8 +61,8 @@
         }
 
         #gridSizeInput {
-        margin-bottom: 5px;
-    }
+            margin-bottom: 5px;
+        }
         
         #actionButtons {
             display: flex;
@@ -96,7 +96,7 @@
         }
 
         #p5Canvas {
-            width: 80vh !important;
+            width: 70vh !important;
             height: auto !important;
         }
 
@@ -113,6 +113,17 @@
             .palette-grid {
                 grid-template-columns: repeat(8, 20px);
                 grid-template-rows: repeat(2, 20px);
+            }
+
+            #toolbar {
+                width: 100%;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #colorPicker, #actionButtons {
+                width: 100%;
+                justify-content: space-evenly;
             }
         }
     </style>
@@ -143,7 +154,7 @@
 
         function setup() {
             let cnv = createCanvas(gridSize * blockSide, gridSize * blockSide);
-            cnv.id('p5Canvas'); // Assigning an ID to the canvas
+            cnv.id('p5Canvas'); 
             cnv.parent('canvas-container');
             initGrid();
             document.getElementById('clearButton').addEventListener('click', clearCanvas);
@@ -151,32 +162,26 @@
             document.getElementById('colorWheel').addEventListener('input', updateColorInputs);
             document.getElementById('hexValue').addEventListener('input', updateColorWheel);
             document.getElementById('gridSizeInput').addEventListener('input', updateGridSize);
-            currentColor = color(0); // Initial color is black
+            currentColor = color(0); 
             initializePalette();
             updatePaletteDisplay();
+            adjustLayoutForWindowSize();
         }
 
-        function updatePaletteDisplay() {
-            const paletteContainer = document.getElementById('colorPalette');
-            paletteContainer.innerHTML = '';
-            colorPalette.forEach(color => {
-            const colorElement = document.createElement('div');
-            colorElement.className = 'palette-color';
-            colorElement.style.backgroundColor = color;
-            colorElement.addEventListener('click', () => selectPaletteColor(color));
-            paletteContainer.appendChild(colorElement);
-            });
+        function adjustLayoutForWindowSize() {
+            const palette = document.getElementById('colorPalette');
+            if (windowWidth <= 768) {
+                palette.style.position = 'static';
+                palette.style.left = 'initial';
+            } else {
+                palette.style.position = 'absolute';
+                palette.style.left = 'calc(100% + 20px)';
+            }
+        }
 
-    // Check if the viewport width is less than or equal to 768px (mobile devices)
-    if (window.innerWidth <= 768) {
-        const workspace = document.getElementById('workspace');
-        const colorPalette = document.getElementById('colorPalette');
-        workspace.appendChild(colorPalette); // Move the colorPalette element to the bottom of the workspace
-    }
-}
-
-// Add an event listener to handle window resize
-window.addEventListener('resize', updatePaletteDisplay);
+        function windowResized() {
+            adjustLayoutForWindowSize();
+        }
 
         function draw() {
             drawGrid();
@@ -208,9 +213,9 @@ window.addEventListener('resize', updatePaletteDisplay);
         }
 
         function saveCanvasAsImage() {
-            drawGrid(false); // Draw without strokes
+            drawGrid(false); 
             saveCanvas('pixel_art', 'png');
-            drawGrid(true); // Redraw with strokes
+            drawGrid(true); 
         }
 
         function drawGrid(withStroke = true) {
@@ -218,9 +223,9 @@ window.addEventListener('resize', updatePaletteDisplay);
                 for (let j = 0; j < gridSize; j++) {
                     fill(grid[i][j]);
                     if (withStroke) {
-                        stroke(0); // Black stroke
+                        stroke(0); 
                     } else {
-                        noStroke(); // No stroke
+                        noStroke(); 
                     }
                     rect(i * blockSide, j * blockSide, blockSide, blockSide);
                 }
@@ -236,7 +241,8 @@ window.addEventListener('resize', updatePaletteDisplay);
         function updateColorWheel() {
             const hex = document.getElementById('hexValue').value;
             currentColor = color(hex);
-            document.getElementById('colorWheel').value = hex;
+            document.getElementById('colorWheel').value =
+            hex;
         }
 
         function addToPalette(newColor) {
