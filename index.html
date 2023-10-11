@@ -135,7 +135,7 @@
             <label>HEX: <input type="text" id="hexValue" value="#000000"></label>
             <input type="color" id="colorWheel" value="#000000">
         </div>
-        <input type="number" id="gridSizeInput" min="6" max="256" value="24">
+        <label>SIZE: <input type="number" id="gridSizeInput" min="6" max="256" value="24"></label>
         <div id="actionButtons">
             <button id="clearButton" class="icon-button" title="Clear Canvas">&#x1F5D1;</button>
             <button id="saveButton" class="icon-button" title="Save as PNG">&#x1F4BE;</button>
@@ -280,7 +280,7 @@
 
         function updateGridSize() {
             const newGridSize = parseInt(document.getElementById('gridSizeInput').value, 10);
-            if (newGridSize >= 6 && newGridSize <= 256) {
+            if (newGridSize >= 6 && newGridSize <= 64) {
                 gridSize = newGridSize;
                 blockSide = width / gridSize;
                 initGrid();
