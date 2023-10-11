@@ -156,6 +156,28 @@
             updatePaletteDisplay();
         }
 
+        function updatePaletteDisplay() {
+            const paletteContainer = document.getElementById('colorPalette');
+            paletteContainer.innerHTML = '';
+            colorPalette.forEach(color => {
+            const colorElement = document.createElement('div');
+            colorElement.className = 'palette-color';
+            colorElement.style.backgroundColor = color;
+            colorElement.addEventListener('click', () => selectPaletteColor(color));
+            paletteContainer.appendChild(colorElement);
+            });
+
+    // Check if the viewport width is less than or equal to 768px (mobile devices)
+    if (window.innerWidth <= 768) {
+        const workspace = document.getElementById('workspace');
+        const colorPalette = document.getElementById('colorPalette');
+        workspace.appendChild(colorPalette); // Move the colorPalette element to the bottom of the workspace
+    }
+}
+
+// Add an event listener to handle window resize
+window.addEventListener('resize', updatePaletteDisplay);
+
         function draw() {
             drawGrid();
         }
