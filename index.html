@@ -1,12 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script type="module">
+        const ORDINALS_LIBS = {
+          fflate: 'e9b984375bc1b4e5c130c59154bca381d47a239d7db41983a77421f180b015bbi0',
+          p5: '81b41e07f39b604838f3fac52931c87b5ab85095812da471d2e43c621d3c4ca0i0'
+        };
+        function addScriptToPage(scriptText) {
+          const newScript = document.createElement('script');
+          newScript.innerHTML = scriptText;
+          document.body.appendChild(newScript);
+        }
+        async function getOrdinalsScript(scriptID) {
+          const response = await fetch("/content/" + scriptID);
+          return (await response.text());
+        }
+        function gunzip64(encodedText) {
+          return fflate.strFromU8(fflate.gunzipSync(new Uint8Array(Array.from(atob(encodedText)).map((char) => char.charCodeAt(0)))));
+        }
+        addScriptToPage(await getOrdinalsScript(ORDINALS_LIBS.fflate));
+        addScriptToPage(await gunzip64(await getOrdinalsScript(ORDINALS_LIBS.p5)));
+      </script>
     <meta charset="UTF-8">
+    <meta name="description" content="p5paint is an open-source & immutable pixel-art drawing app inscribed directly onto Bitcoin via the Ordinals protocol brought to you by PxPushers.">
+    <meta name="author" content="aklo">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>p5 Paint</title>
-    <link rel="icon" href="favicon.webp" type="image/webp">
+    <title>p5paint</title>
+    <link rel="icon" href="pencil.svg" type="image/webp">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="px2svg.js"></script>
+    <script src="main.js"></script>
     <style>
+        @font-face {
+            font-family: Pixel;
+            src: url('pixelmix.ttf');
+        }
         body {
             overflow: hidden;
             display: flex;
@@ -15,289 +43,162 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #FFF;
-            font-family: 'Lucida Console', Consolas, Courier New, monospace;
+            background-color: #DDD;
+            font-family: Pixel, monospace;
         }
-
         img#logo {
             position: absolute;
             top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 12px;
             height: auto;
             margin-bottom: 5px;
+            width: 78px;
         }
-        
         h1 {
             color: #000;
-            font-size: 20px;
+            font-size: 18px;
             text-align: center;
-            margin-bottom: 5px;
+            margin-bottom: 1%;
             font-weight: 100;
         }
-        
-        .icon-button {
-            background: none;
+        #clearButton {
+            background-image: url("delete.gif");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            width: 32px;
+            height: 32px;
             border: none;
-            font-size: 20px;
+            outline: none;
             cursor: pointer;
-            color: #000;
-            transition: color 0.3s ease;
+            background-color: transparent;
         }
-        
-        .icon-button:hover {
-            color: #00f;
+        #saveButton {
+            background-image: url("save.gif");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            width: 32px;
+            height: 32px;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            background-color: transparent;
         }
-        
-        .icon-button:active {
-            color: #f00;
+        #hexValue {
+            width: 60px;
         }
-        
         #toolbar {
-            width: 480px; 
+            width: 35vw !important;
             display: flex;
             justify-content: space-between;
-            align-items: flex-end; 
+            align-items: center;
+            flex-wrap: nowrap;
+            overflow-x: hidden;
         }
-        
-        #colorPicker {
+        #colorPicker, #gridSizeInput, #modeToggle, #clearButton, #saveButton {
+            flex: 1; 
             display: flex;
-            gap: 10px; 
-            align-items: center; 
-            margin-bottom: 5px;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            margin: 0;
         }
-        
+        #modeToggle {
+            background-image: url("pencil.svg");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            width: 32px;
+            height: 28px;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            background-color: transparent;
+        }
         label {
             color: #000;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
         }
-
-        #gridSizeInput {
-            margin-bottom: 5px;
-        }
-        
         #actionButtons {
             display: flex;
             gap: 10px; 
             align-items: center;
         }
-        
         #workspace {
             position: relative;
             display: inline-flex;
             align-items: start;
             gap: 20px; 
         }
-        
         #colorPalette {
             position: absolute;
             left: calc(100% + 20px); 
         }
-        
         .palette-grid {
             display: grid;
             grid-template-columns: repeat(2, 20px); 
             grid-template-rows: repeat(8, 20px); 
             grid-gap: 1px; 
         }
-        
         .palette-color {
             width: 20px;
             height: 20px;
             outline: 1px solid #000; 
         }
-
         #p5Canvas {
-            width: 70vh !important;
+            width: 35vw !important;
             height: auto !important;
         }
-
         @media only screen and (max-width: 768px) {
             #p5Canvas {
-                width: 90vw !important;
+                width: 70vw !important;
             }
-
             #workspace {
                 flex-direction: column;
                 align-items: center;
             }
-
             .palette-grid {
                 grid-template-columns: repeat(8, 20px);
                 grid-template-rows: repeat(2, 20px);
             }
-
             #toolbar {
-                width: 100%;
-                flex-direction: column;
-                align-items: center;
+                width: 95vw !important;
+                padding: 0;
+                margin-bottom: 6px;
             }
-
-            #colorPicker, #actionButtons {
-                width: 100%;
-                justify-content: space-evenly;
+            #colorPicker, #gridSizeInput, #modeToggle, #clearButton, #saveButton {
+                flex-basis: auto;
+                margin: 0 0.5%;
             }
         }
     </style>
 </head>
 <body>
-    <img src="pxp.webp" alt="Logo" id="logo">
-    <h1>P5 Paint</h1>
+    <div id="logo">
+        <img src="pxp.svg" alt="Logo" id="logo">
+    </div>
+    <h1>P5Paint</h1>
+    <div id="output"></div>
     <div id="toolbar">
         <div id="colorPicker">
-            <label>HEX: <input type="text" id="hexValue" value="#000000"></label>
+            <label>COLOR: <input type="text" id="hexValue" value="#000000"></label>
             <input type="color" id="colorWheel" value="#000000">
         </div>
-        <label>SIZE: <input type="number" id="gridSizeInput" min="6" max="256" value="24"></label>
+        <div id="gridSizeInput">
+        <label>SIZE: <input type="number" min="6" max="64" value="24"></label>
+        </div>
         <div id="actionButtons">
-            <button id="clearButton" class="icon-button" title="Clear Canvas">&#x1F5D1;</button>
-            <button id="saveButton" class="icon-button" title="Save as PNG">&#x1F4BE;</button>
+            <button id="modeToggle" class="icon-button" title="Toggle Mode"></button>
+            <button id="clearButton" class="icon-button" title="Clear Canvas"></button>
+            <button id="saveButton" class="icon-button" title="Save as PNG"></button>
         </div>
     </div>
     <div id="workspace">
         <div id="canvas-container"></div>
         <div id="colorPalette" class="palette-grid"></div>
     </div>
-    <script>
-        let grid = [];
-        let gridSize = 24;
-        let blockSide = 20;
-        let currentColor;
-        let colorPalette = [];
-
-        function setup() {
-            let cnv = createCanvas(gridSize * blockSide, gridSize * blockSide);
-            cnv.id('p5Canvas'); 
-            cnv.parent('canvas-container');
-            initGrid();
-            document.getElementById('clearButton').addEventListener('click', clearCanvas);
-            document.getElementById('saveButton').addEventListener('click', saveCanvasAsImage);
-            document.getElementById('colorWheel').addEventListener('input', updateColorInputs);
-            document.getElementById('hexValue').addEventListener('input', updateColorWheel);
-            document.getElementById('gridSizeInput').addEventListener('input', updateGridSize);
-            currentColor = color(0); 
-            initializePalette();
-            updatePaletteDisplay();
-            adjustLayoutForWindowSize();
-        }
-
-        function adjustLayoutForWindowSize() {
-            const palette = document.getElementById('colorPalette');
-            if (windowWidth <= 768) {
-                palette.style.position = 'static';
-                palette.style.left = 'initial';
-            } else {
-                palette.style.position = 'absolute';
-                palette.style.left = 'calc(100% + 20px)';
-            }
-        }
-
-        function windowResized() {
-            adjustLayoutForWindowSize();
-        }
-
-        function draw() {
-            drawGrid();
-        }
-
-        function mousePressed() {
-            drawPixel();
-        }
-
-        function mouseDragged() {
-            drawPixel();
-        }
-
-        function drawPixel() {
-            let i = floor(mouseX / blockSide);
-            let j = floor(mouseY / blockSide);
-            if (i >= 0 && i < gridSize && j >= 0 && j < gridSize) {
-                grid[i][j] = currentColor;
-                addToPalette(currentColor);
-            }
-        }
-
-        function initGrid() {
-            grid = new Array(gridSize).fill(0).map(() => new Array(gridSize).fill(color(255)));
-        }
-
-        function clearCanvas() {
-            initGrid();
-        }
-
-        function saveCanvasAsImage() {
-            drawGrid(false); 
-            saveCanvas('pixel_art', 'png');
-            drawGrid(true); 
-        }
-
-        function drawGrid(withStroke = true) {
-            for (let i = 0; i < gridSize; i++) {
-                for (let j = 0; j < gridSize; j++) {
-                    fill(grid[i][j]);
-                    if (withStroke) {
-                        stroke(0); 
-                    } else {
-                        noStroke(); 
-                    }
-                    rect(i * blockSide, j * blockSide, blockSide, blockSide);
-                }
-            }
-        }
-
-        function updateColorInputs(event) {
-            const hexColor = event.target.value;
-            document.getElementById('hexValue').value = hexColor;
-            currentColor = color(hexColor);
-        }
-
-        function updateColorWheel() {
-            const hex = document.getElementById('hexValue').value;
-            currentColor = color(hex);
-            document.getElementById('colorWheel').value =
-            hex;
-        }
-
-        function addToPalette(newColor) {
-            const hexColor = `#${newColor.levels.slice(0, 3).map(c => c.toString(16).padStart(2, '0')).join('')}`;
-            if (!colorPalette.includes(hexColor)) {
-                colorPalette.push(hexColor);
-                if (colorPalette.length > 16) {
-                    colorPalette.shift();
-                }
-                updatePaletteDisplay();
-            }
-        }
-
-        function initializePalette() {
-            colorPalette = new Array(16).fill("#FFFFFF");
-        }
-
-        function updatePaletteDisplay() {
-            const paletteContainer = document.getElementById('colorPalette');
-            paletteContainer.innerHTML = '';
-            colorPalette.forEach(color => {
-                const colorElement = document.createElement('div');
-                colorElement.className = 'palette-color';
-                colorElement.style.backgroundColor = color;
-                colorElement.addEventListener('click', () => selectPaletteColor(color));
-                paletteContainer.appendChild(colorElement);
-            });
-        }
-
-        function selectPaletteColor(color) {
-            document.getElementById('colorWheel').value = color;
-            document.getElementById('hexValue').value = color;
-            currentColor = color;
-        }
-
-        function updateGridSize() {
-            const newGridSize = parseInt(document.getElementById('gridSizeInput').value, 10);
-            if (newGridSize >= 6 && newGridSize <= 64) {
-                gridSize = newGridSize;
-                blockSide = width / gridSize;
-                initGrid();
-            }
-        }
-    </script>
 </body>
 </html>
