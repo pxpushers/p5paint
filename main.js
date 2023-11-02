@@ -11,6 +11,7 @@ function setup() {
     cnv.id('p5Canvas'); 
     cnv.parent('canvas-container');
     initGrid();
+    setDefaultSVG();
     document.getElementById('modeToggle').addEventListener('click', toggleMode);
     document.getElementById('clearButton').addEventListener('click', clearCanvas);
     document.getElementById('saveButton').addEventListener('click', saveCanvasAsImage);
@@ -38,6 +39,10 @@ function setup() {
     function draw() {
         drawGrid();
     }
+    function setDefaultSVG() {
+        const modeButton = document.getElementById('modeToggle');
+        modeButton.style.backgroundImage = 'url("pencil.svg")';
+    }
     function adjustLayoutForWindowSize() {
         const palette = document.getElementById('colorPalette');
         if (windowWidth <= 768) {
@@ -57,17 +62,21 @@ function setup() {
     }
     function updateModeIcon() {
         const modeButton = document.getElementById('modeToggle');
+        const isDarkMode = document.body.classList.contains("dark-mode");
+        
+        let imageSuffix = isDarkMode ? "-w" : ""; // Use -w suffix for dark mode
+    
         switch (modeStates[currentModeIndex]) {
             case 'draw':
-                modeButton.style.backgroundImage = 'url("pencil.svg")';
+                modeButton.style.backgroundImage = `url("pencil${imageSuffix}.svg")`;
                 modeButton.title = "Toggle to Sampling Mode";
                 break;
             case 'sample':
-                modeButton.style.backgroundImage = 'url("eyedropper.svg")';
+                modeButton.style.backgroundImage = `url("eyedropper${imageSuffix}.svg")`;
                 modeButton.title = "Toggle to Fill Mode";
                 break;
             case 'fill':
-                modeButton.style.backgroundImage = 'url("fill.svg")';
+                modeButton.style.backgroundImage = `url("fill${imageSuffix}.svg")`;
                 modeButton.title = "Toggle to Drawing Mode";
                 break;
         }

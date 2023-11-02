@@ -28,6 +28,7 @@
     <title>p5paint</title>
     <link rel="icon" href="pencil.svg" type="image/webp">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="dark.js"></script>
     <script src="px2svg.js"></script>
     <script src="main.js"></script>
     <style>
@@ -45,6 +46,7 @@
             margin: 0;
             background-color: #DDD;
             font-family: Pixel, monospace;
+            transition: background-color 0.2s, color 0.2s;
         }
         img#logo {
             position: absolute;
@@ -60,7 +62,72 @@
             text-align: center;
             margin-bottom: 1%;
             font-weight: 100;
+            transition: color 0.2s;
         }
+        #darkMode {
+            position: absolute;
+            top: 6px;
+            right: 12px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: #444;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #444;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
         #clearButton {
             background-image: url("delete.gif");
             background-repeat: no-repeat;
@@ -105,12 +172,11 @@
             margin: 0;
         }
         #modeToggle {
-            background-image: url("pencil.svg");
             background-repeat: no-repeat;
             background-position: center;
             background-size: contain;
             width: 32px;
-            height: 28px;
+            height: 32px;
             border: none;
             outline: none;
             cursor: pointer;
@@ -121,6 +187,7 @@
             display: flex;
             align-items: center;
             font-size: 12px;
+            transition: color 0.2s;
         }
         #actionButtons {
             display: flex;
@@ -180,6 +247,12 @@
     <div id="logo">
         <img src="pxp.svg" alt="Logo" id="logo">
     </div>
+    <div id="darkMode">
+    <label class="switch">
+        <input type="checkbox" id="darkModeToggle">
+        <span class="slider round"></span>
+    </label>
+    </div>      
     <h1>P5Paint</h1>
     <div id="output"></div>
     <div id="toolbar">
