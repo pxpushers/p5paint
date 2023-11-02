@@ -6,16 +6,28 @@ let currentModeIndex = 0;
 let previousMode = modeStates[currentModeIndex];
 let currentColor;
 let colorPalette = [];
+let svgDataCache = {};
 function setup() {
     let cnv = createCanvas(gridSize * blockSide, gridSize * blockSide);
     cnv.id('p5Canvas'); 
     cnv.parent('canvas-container');
+    initGrid();
+    preloadSVGs().then(() => {
+        setDefaultSVG();
+    });
     document.getElementById('modeToggle').addEventListener('click', toggleMode);
     document.getElementById('clearButton').addEventListener('click', clearCanvas);
     document.getElementById('saveButton').addEventListener('click', saveCanvasAsImage);
     document.getElementById('colorWheel').addEventListener('input', updateColorInputs);
     document.getElementById('hexValue').addEventListener('input', updateColorWheel);
     document.getElementById('gridSizeInput').addEventListener('input', updateGridSize);
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+        // Toggle the dark mode class on the body
+        document.body.classList.toggle('dark-mode');
+        
+        // Update the SVG colors
+        updateModeIcon();
+    });
     currentColor = color(0); 
     initializePalette();
     updatePaletteDisplay();
@@ -37,22 +49,30 @@ function setup() {
     function draw() {
         drawGrid();
     }
-    function setDefaultSVG() {
-        fetchAndEmbedSVG('pencil.svg', 'modeToggle');
-    }
-    function fetchAndEmbedSVG(filename, elementId) {
-        fetch(`${filename}`)
-        .then(response => response.text())
-        .then(data => {
-            const container = document.getElementById(elementId);
-            const svgDataUrl = "data:image/svg+xml," + encodeURIComponent(data);
-            container.style.backgroundImage = `url(${svgDataUrl})`;
-            updateModeIcon(); // Update the mode icon after embedding
-        })
-        .catch(error => {
-            console.error("Error fetching SVG:", error);
+    function preloadSVGs() {
+        const svgFiles = ["pencil.svg", "eyedropper.svg", "fill.svg"];
+        const baseSVGPath = "https://aklo360.github.io/p5paint/svg/";
+        
+        let promises = svgFiles.map(svgFile => {
+            return fetch(baseSVGPath + svgFile)
+            .then(response => response.text())
+            .then(svgData => {
+                svgDataCache[svgFile] = "data:image/svg+xml," + encodeURIComponent(svgData);
+            });
         });
+    
+        return Promise.all(promises);
     }
+    preloadSVGs();
+    function setDefaultSVG() {
+        const modeButton = document.getElementById('modeToggle');
+        modeButton.innerHTML = decodeURIComponent(svgDataCache["pencil.svg"].split(",")[1]);
+    }    
+    function fetchAndEmbedSVG(svgFile, container) {
+        let svgDataUrl = svgDataCache[svgFile];
+        container.innerHTML = svgDataUrl; // Embed the SVG directly into the container
+    }
+    
     function adjustLayoutForWindowSize() {
         const palette = document.getElementById('colorPalette');
         if (windowWidth <= 768) {
@@ -70,44 +90,56 @@ function setup() {
         currentModeIndex = (currentModeIndex + 1) % modeStates.length;
         updateModeIcon();
     }
+    function simplifyHexCode(hex) {
+        if (hex.length === 7) { // Check if it's a 6-digit hex code
+            return '#' + hex[1] + hex[3] + hex[5];
+        }
+        return hex;
+    }        
     function updateModeIcon() {
         const modeButton = document.getElementById('modeToggle');
         const isDarkMode = document.body.classList.contains("dark-mode");
-        const svgElement = modeButton.querySelector('svg');
+        let svgContent;
     
+        switch (modeStates[currentModeIndex]) {
+            case 'draw':
+                svgContent = svgDataCache["pencil.svg"];
+                modeButton.title = "Toggle to Sampling Mode";
+                break;
+            case 'sample':
+                svgContent = svgDataCache["eyedropper.svg"];
+                modeButton.title = "Toggle to Fill Mode";
+                break;
+            case 'fill':
+                svgContent = svgDataCache["fill.svg"];
+                modeButton.title = "Toggle to Drawing Mode";
+                break;
+        }
+    
+        modeButton.innerHTML = decodeURIComponent(svgContent.split(",")[1]);
+        const svgElement = modeButton.querySelector('svg');
         if (svgElement) {
             const paths = svgElement.querySelectorAll('path');
             paths.forEach(path => {
-                let currentFill = path.getAttribute('fill');
+                let currentStroke = path.getAttribute('stroke');
                 if (isDarkMode) {
-                    if (currentFill === '#000000') {
-                        path.setAttribute('fill', '#FFFFFF'); // Black to White
-                    } else if (['#FFD700', '#FFC0CB'].includes(currentFill)) {
-                        path.setAttribute('fill', '#FFFFFF'); // Yellow and Pink to White
+                    if (currentStroke === '#ff0') {
+                        // Remove the path from the SVG if its stroke is #ff0 and dark mode is active
+                        svgElement.removeChild(path);
+                        return; 
+                    } else if (currentStroke === '#000') {
+                        path.setAttribute('stroke', '#FFF'); // Black to White
+                    } else if (['#f0f', '#ff0', '#d2af00'].includes(currentStroke)) {
+                        path.setAttribute('stroke', '#FFF'); // Yellow and Pink to White
                     }
                 } else {
-                    if (currentFill === '#FFFFFF') {
-                        path.setAttribute('fill', '#000000'); // White to Black
+                    if (currentStroke === '#FFF') {
+                        path.setAttribute('stroke', '#000'); // White to Black
                     }
                 }
             });
         }
-    
-        switch (modeStates[currentModeIndex]) {
-            case 'draw':
-                fetchAndEmbedSVG('pencil.svg', 'modeToggle');
-                modeButton.title = "Toggle to Sampling Mode";
-                break;
-            case 'sample':
-                fetchAndEmbedSVG('eyedropper.svg', 'modeToggle');
-                modeButton.title = "Toggle to Fill Mode";
-                break;
-            case 'fill':
-                fetchAndEmbedSVG('fill.svg', 'modeToggle');
-                modeButton.title = "Toggle to Drawing Mode";
-                break;
-        }
-    }
+    }    
     function floodFill(x, y, targetColor, fillColor) {
         if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) return;
         if (!colorsMatch(grid[x][y], targetColor) || colorsMatch(grid[x][y], fillColor)) return;
