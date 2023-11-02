@@ -10,8 +10,6 @@ function setup() {
     let cnv = createCanvas(gridSize * blockSide, gridSize * blockSide);
     cnv.id('p5Canvas'); 
     cnv.parent('canvas-container');
-    initGrid();
-    setDefaultSVG();
     document.getElementById('modeToggle').addEventListener('click', toggleMode);
     document.getElementById('clearButton').addEventListener('click', clearCanvas);
     document.getElementById('saveButton').addEventListener('click', saveCanvasAsImage);
@@ -40,8 +38,20 @@ function setup() {
         drawGrid();
     }
     function setDefaultSVG() {
-        const modeButton = document.getElementById('modeToggle');
-        modeButton.style.backgroundImage = 'url("pencil.svg")';
+        fetchAndEmbedSVG('pencil.svg', 'modeToggle');
+    }
+    function fetchAndEmbedSVG(filename, elementId) {
+        fetch(`${filename}`)
+        .then(response => response.text())
+        .then(data => {
+            const container = document.getElementById(elementId);
+            const svgDataUrl = "data:image/svg+xml," + encodeURIComponent(data);
+            container.style.backgroundImage = `url(${svgDataUrl})`;
+            updateModeIcon(); // Update the mode icon after embedding
+        })
+        .catch(error => {
+            console.error("Error fetching SVG:", error);
+        });
     }
     function adjustLayoutForWindowSize() {
         const palette = document.getElementById('colorPalette');
@@ -63,20 +73,37 @@ function setup() {
     function updateModeIcon() {
         const modeButton = document.getElementById('modeToggle');
         const isDarkMode = document.body.classList.contains("dark-mode");
-        
-        let imageSuffix = isDarkMode ? "-w" : ""; // Use -w suffix for dark mode
+        const svgElement = modeButton.querySelector('svg');
+    
+        if (svgElement) {
+            const paths = svgElement.querySelectorAll('path');
+            paths.forEach(path => {
+                let currentFill = path.getAttribute('fill');
+                if (isDarkMode) {
+                    if (currentFill === '#000000') {
+                        path.setAttribute('fill', '#FFFFFF'); // Black to White
+                    } else if (['#FFD700', '#FFC0CB'].includes(currentFill)) {
+                        path.setAttribute('fill', '#FFFFFF'); // Yellow and Pink to White
+                    }
+                } else {
+                    if (currentFill === '#FFFFFF') {
+                        path.setAttribute('fill', '#000000'); // White to Black
+                    }
+                }
+            });
+        }
     
         switch (modeStates[currentModeIndex]) {
             case 'draw':
-                modeButton.style.backgroundImage = `url("pencil${imageSuffix}.svg")`;
+                fetchAndEmbedSVG('pencil.svg', 'modeToggle');
                 modeButton.title = "Toggle to Sampling Mode";
                 break;
             case 'sample':
-                modeButton.style.backgroundImage = `url("eyedropper${imageSuffix}.svg")`;
+                fetchAndEmbedSVG('eyedropper.svg', 'modeToggle');
                 modeButton.title = "Toggle to Fill Mode";
                 break;
             case 'fill':
-                modeButton.style.backgroundImage = `url("fill${imageSuffix}.svg")`;
+                fetchAndEmbedSVG('fill.svg', 'modeToggle');
                 modeButton.title = "Toggle to Drawing Mode";
                 break;
         }
