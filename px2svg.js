@@ -63,7 +63,7 @@
     }
     var colors = getColors(img),
         paths = colorsToPaths(colors),
-        output = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -0.5 '+img.width+' '+img.height+'" shape-rendering="crispEdges">\n<metadata>Made with p5paint by PxPushers</metadata>\n' + paths + '</svg>';
+        output = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -0.5 '+img.width+' '+img.height+'" shape-rendering="crispEdges" width="100%" height="100%">\n<metadata>Made with p5paint by PxPushers</metadata>\n' + paths + '</svg>';
     return output;
   };
   function showOutput(output,fileName) {

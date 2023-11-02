@@ -13,14 +13,14 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     function switchToDarkMode() {
-        body.style.backgroundColor = "#111";
-        document.querySelectorAll("h1, label").forEach(el => el.style.color = "white");
+        body.classList.add('dark-mode');
+        body.classList.remove('light-mode');
         switchSVGs(true);
     }
-
+    
     function switchToLightMode() {
-        body.style.backgroundColor = "#DDD";
-        document.querySelectorAll("h1, label").forEach(el => el.style.color = "#000");
+        body.classList.remove('dark-mode');
+        body.classList.add('light-mode');
         switchSVGs(false);
     }
 

@@ -48,6 +48,29 @@
             font-family: Pixel, monospace;
             transition: background-color 0.2s, color 0.2s;
         }
+        body.dark-mode {
+            background-color: #111;
+            color: white;
+        }
+
+        body.light-mode {
+            background-color: #DDD;
+            color: #000;
+        }
+        /* If there are specific elements that need different colors in dark mode, you can target them like this: */
+        body.dark-mode h1,
+        body.dark-mode label,
+        body.dark-mode .output__details,
+        body.dark-mode .output__size {
+            color: white;
+        }
+
+        body.light-mode h1,
+        body.light-mode label,
+        body.light-mode .output__details,
+        body.light-mode .output__size {
+            color: #000;
+        }
         img#logo {
             position: absolute;
             top: 12px;
@@ -60,7 +83,7 @@
             color: #000;
             font-size: 18px;
             text-align: center;
-            margin-bottom: 2%;
+            margin-bottom: 1%;
             font-weight: 100;
             transition: color 0.2s;
         }
@@ -158,6 +181,7 @@
         #toolbar {
             width: 35vw !important;
             display: flex;
+            margin-top: 1%;
             justify-content: space-between;
             align-items: center;
             flex-wrap: nowrap;
