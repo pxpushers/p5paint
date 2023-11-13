@@ -277,7 +277,7 @@ function setup() {
     function saveCanvasAsImage() {
         // Save the current canvas as PNG
         drawGrid(false); 
-        saveCanvas('myCanvas', 'png');
+        saveCanvas('myPixelArt', 'png');
     
         // Create a new graphics object for SVG conversion
         let graphics = createGraphics(gridSize, gridSize);
