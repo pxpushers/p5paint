@@ -72,17 +72,21 @@ function setup() {
         let svgDataUrl = svgDataCache[svgFile];
         container.innerHTML = svgDataUrl; // Embed the SVG directly into the container
     }
-    
     function adjustLayoutForWindowSize() {
         const palette = document.getElementById('colorPalette');
         if (windowWidth <= 768) {
             palette.style.position = 'static';
             palette.style.left = 'initial';
+            palette.style.gridTemplateColumns = `repeat(16, 20px)`;
+            palette.style.gridTemplateRows = `repeat(2, 20px)`;
         } else {
             palette.style.position = 'absolute';
             palette.style.left = 'calc(100% + 20px)';
+            palette.style.gridTemplateColumns = `repeat(2, 20px)`;
+            palette.style.gridTemplateRows = `repeat(16, 20px)`;
         }
     }
+    
     function windowResized() {
         adjustLayoutForWindowSize();
     }
@@ -235,18 +239,8 @@ function setup() {
         document.getElementById('colorWheel').value =
         hex;
     }
-    function addToPalette(newColor) {
-        const hexColor = newColor.toString('#rrggbb');
-        if (!colorPalette.includes(hexColor)) {
-            colorPalette.push(hexColor);
-            if (colorPalette.length > 16) {
-                colorPalette.shift();
-            }
-            updatePaletteDisplay();
-        }
-    }
     function initializePalette() {
-        colorPalette = new Array(16).fill("#FFFFFF");
+        colorPalette = new Array(32).fill("#FFFFFF");
     }
     function updatePaletteDisplay() {
         const paletteContainer = document.getElementById('colorPalette');
@@ -258,7 +252,18 @@ function setup() {
             colorElement.addEventListener('click', () => selectPaletteColor(color));
             paletteContainer.appendChild(colorElement);
         });
-    }
+    }      
+    function addToPalette(newColor) {
+        const hexColor = newColor.toString('#rrggbb');
+        if (!colorPalette.includes(hexColor)) {
+            colorPalette.push(hexColor);
+            if (colorPalette.length > 32) {
+                colorPalette.shift();
+            }
+            updatePaletteDisplay();
+        }
+    }    
+
     function updateGridSize() {
         const gridSizeInputElement = document.querySelector('#gridSizeInput input');
         const newGridSize = parseInt(gridSizeInputElement.value, 10);
@@ -270,14 +275,15 @@ function setup() {
         }
     }
     function saveCanvasAsImage() {
-        let originalDensity = pixelDensity();
-        pixelDensity(1);
-        
-        // Create a new graphics object with the desired size
+        // Save the current canvas as PNG
+        drawGrid(false); 
+        saveCanvas('myCanvas', 'png');
+    
+        // Create a new graphics object for SVG conversion
         let graphics = createGraphics(gridSize, gridSize);
         graphics.pixelDensity(1);
         graphics.noSmooth();
-        
+    
         for (let i = 0; i < gridSize; i++) {
             for (let j = 0; j < gridSize; j++) {
                 graphics.fill(grid[i][j]);
@@ -285,14 +291,14 @@ function setup() {
                 graphics.rect(i, j, 1, 1); // Draw each block as a 1x1 rectangle
             }
         }
-        
+    
         // Get the image data from the graphics
         let imgData = graphics.drawingContext.getImageData(0, 0, gridSize, gridSize);
     
         // Pass the image data to the convert function
         px2svg(imgData);
     
-        // Restore the original canvas size and pixel density
-        pixelDensity(originalDensity);
-        drawGrid();
-    }    
+        // Dispose of the graphics object to free up memory
+        graphics.remove();
+    }
+    
